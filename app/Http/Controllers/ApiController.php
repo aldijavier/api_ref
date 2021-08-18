@@ -55,7 +55,7 @@ class ApiController extends Controller
                 'success' => true,
                 'status' => false,
                 'user' => $request['username'],
-                'message' => 'username '.$request['username'].' not blocked'
+                'message' => 'username '.$request['username'].' already unblocked'
             ],202);
         }
     }
