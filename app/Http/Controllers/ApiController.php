@@ -8,8 +8,61 @@ use Illuminate\Http\Request;
 
 class ApiController extends Controller
 {
+    const block_priority = -999;
+    const unblock_priority = 0;
+    const groupname_blocked = 'daloRADIUS-Disabled-Users';
+    
+    public function CheckRadusergroupUser(Request $request)
+    {
+        // ../api/rad-checkradusergroup
+        $query = RadUserGroup::where('username', $request['username'])
+        ->first();
+        if(isset($query)) {
+            return response()->json([
+                'success' => true,
+                'user' => $request['username'],
+                'status' => true,
+            ],200);
+        } else {
+            return response()->json([
+                'success' => false,
+                'status' => false,
+                'message' => 'username '.$request['username'].' not found'
+            ],202);
+        }
+    }
+    public function CheckBlock(Request $request) 
+    {
+        // ../api/rad-checkblock
+        try {
+            $CheckRadusergroupUser = $this->CheckRadusergroupUser($request);
+            if($CheckRadusergroupUser->getData()->status == false) {
+                return $CheckRadusergroupUser;
+            }
+            $query =  RadUserGroup::where('username', $request['username'])
+            ->where('groupname', ApiController::groupname_blocked)
+            ->where('priority', ApiController::block_priority)
+            ->firstOrFail(); 
+            return response()->json([
+                'success' => true,
+                'status' => true,
+                'user' => $request['username'],
+                'message' => 'username '.$request['username'].' already blocked'
+            ],200);
+
+        } catch (\Exception $e){
+            return response()->json([
+                'success' => true,
+                'status' => false,
+                'user' => $request['username'],
+                'message' => 'username '.$request['username'].' not blocked'
+            ],202);
+        }
+    }
+
     public function UserInfo()
     {
+        // ../api/rad-alluser
         $query =  UserInfo::get();
         return response()->json([
             'success' => true,
@@ -28,6 +81,7 @@ class ApiController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
+                'user' => $request['username'],
                 'message' => 'username not found'
             ],202);
         }
@@ -37,46 +91,34 @@ class ApiController extends Controller
     {
         // ../api/rad-block
         // return $this->FindByUsername($request['username']);
-        $find = $this->FindByUsername($request);
         // $find2 = json_decode($find->getContent());
-        if($find->getData()->success ==  true) {
+        $find = $this->FindByUsername($request);
+        if($find->getData()->success == true) {
             try {
-                $query =  RadUserGroup::where('username', $request['username'])
-                ->where('groupname', $request['groupname'])
-                ->where('groupname', '!=', 'daloRADIUS-Disabled-Users')
-                ->where('priority', 0)
-                ->first();
-                $query1 =  RadUserGroup::where('username', $request['username'])
-                ->where('groupname','daloRADIUS-Disabled-Users')
-                ->where('priority', -999)
-                ->first();          
-                if(isset($query1)) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'User '.$request['username'].' already blocked!'
-                    ],202);                      
-                } else {
-                    $query2 = RadUserGroup::insert(['username' => $query['username'], 
-                    'groupname' => 'daloRADIUS-Disabled-Users',
-                    'priority' =>  -999]);                    
-                    return response()->json([
-                        'success' => true,
-                        'user' => $query,
-                    ],200);  
-                }
-                         
+                $CheckRadusergroupUser = $this->CheckRadusergroupUser($request);
+                $CheckBlock = $this->CheckBlock($request);
+                if($CheckBlock->getData()->success == false) {
+                    return $CheckRadusergroupUser;
+                }else if($CheckBlock->getData()->status ==  true) {
+                    return $CheckBlock;                 
+                } 
+                $query2 = RadUserGroup::insert(['username' => $request['username'], 
+                'groupname' => ApiController::groupname_blocked,
+                'priority' =>  ApiController::block_priority]);                    
+                return response()->json([
+                    'success' => true,
+                    'user' => $request['username'],
+                    'message' => 'Block user successfully'
+                ],200);          
             } catch (\Exception $e){
                 return response()->json([
                     'success' => false,
-                    'message' => 'Block user fail'
+                    'message' => 'Block user failed'
                 ],202);
             }
         }
         else {
-            return response()->json([
-                'success' => false,
-                'message' => 'username not found'
-            ],202);
+            return $find;
         }
     }
     public function UnblockUserConnection(Request $request)
@@ -85,35 +127,25 @@ class ApiController extends Controller
         $find = $this->FindByUsername($request);
         if($find->getData()->success ==  true) {
             try {
-                if($request['groupname'] != 'daloRADIUS-Disabled-Users') {
+                $CheckBlock = $this->CheckBlock($request);
+                if($request['groupname'] != ApiController::groupname_blocked) {
                     return response()->json([
                         'success' => false,
                         'message' => 'Not blocked user!'
                     ],202);   
                 } else {
-                    $query =  RadUserGroup::where('username', $request['username'])
-                    ->where('groupname','daloRADIUS-Disabled-Users')
-                    ->where('groupname', $request['groupname'])
-                    ->where('priority', $request['priority'])
-                    ->first();
-                    $query1 =  RadUserGroup::where('username', $request['username'])
-                    ->where('groupname', '!=','daloRADIUS-Disabled-Users')
-                    ->first();          
-                    if(isset($query1) and !isset($query)) {
-                        return response()->json([
-                            'success' => false,
-                            'user' => $query1,
-                            'message' => 'The user has not been blocked!'
-                        ],202);                      
+                    if($CheckBlock->getData()->status == false) {
+                        return $CheckBlock;                  
                     } else {
                         $query2 =  RadUserGroup::where('username', $request['username'])
                         ->where('groupname', $request['groupname'])
-                        ->where('groupname', 'daloRADIUS-Disabled-Users')
-                        ->where('priority', $request['priority'])
+                        ->where('groupname', ApiController::groupname_blocked)
+                        ->where('priority', -999)
                         ->delete();                 
                         return response()->json([
                             'success' => true,
-                            'user' => $query,
+                            'user' => $request['username'],
+                            'message' => 'Unblock user successfully'
                         ],200);  
                     }
                 }
@@ -126,10 +158,7 @@ class ApiController extends Controller
             }
         }
         else {
-            return response()->json([
-                'success' => false,
-                'message' => 'username not found'
-            ],202);
+            return $find;
         }
     
     }    
