@@ -129,27 +129,19 @@ class ApiController extends Controller
         if($find->getData()->success ==  true) {
             try {
                 $CheckBlock = $this->CheckBlock($request);
-                if($request['groupname'] != ApiController::groupname_blocked) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Not blocked user!'
-                    ],202);   
+                if($CheckBlock->getData()->status == false) {
+                    return $CheckBlock;                  
                 } else {
-                    if($CheckBlock->getData()->status == false) {
-                        return $CheckBlock;                  
-                    } else {
-                        $query2 =  RadUserGroup::where('username', $request['username'])
-                        ->where('groupname', ApiController::groupname_blocked)
-                        ->where('priority', ApiController::block_priority)
-                        ->delete();                 
-                        return response()->json([
-                            'success' => true,
-                            'user' => $request['username'],
-                            'message' => 'Unblock user successfully'
-                        ],200);  
-                    }
-                }
-                         
+                    $query2 =  RadUserGroup::where('username', $request['username'])
+                    ->where('groupname', ApiController::groupname_blocked)
+                    ->where('priority', ApiController::block_priority)
+                    ->delete();                 
+                    return response()->json([
+                        'success' => true,
+                        'user' => $request['username'],
+                        'message' => 'Unblock user successfully'
+                    ],200);  
+                }   
             } catch (\Exception $e){
                 return response()->json([
                     'success' => false,
@@ -165,25 +157,6 @@ class ApiController extends Controller
     
     public function groupStatusAll() 
     {
-        // $query = DB::table('radcheck')
-        // ->leftJoin('radusergroup', 'radcheck.username', '=', 'radusergroup.username')
-        // ->leftJoin('userinfo', 'radcheck.username', '=', 'userinfo.username')
-        // ->leftJoin('radusergroup as disabled', function($join){
-        //     $join->on('disabled.username', '=', 'userinfo.username')
-        //     ->where('disabled.username', 'daloRADIUS-Disabled-Users');
-            
-        // })
-        // ->select(DB::raw('distinct(radcheck.username), radcheck.value, radcheck.id, radusergroup.groupname as groupname, 
-        //     attribute, userinfo.firstname, userinfo.lastname, IFNULL(disabled.username,0) as disabled'))
-        // // ->where('radcheck.username', 'userinfo.username')
-        // ->whereIn('Attribute', 
-        //     array('Cleartext-Password', 'Auth-Type','User-Password', 'Crypt-Password', 
-        //     'MD5-Password', 'SMD5-Password', 'SHA-Password', 'SSHA-Password', 'NT-Password', 
-        //     'LM-Password', 'SHA1-Password', 'CHAP-Password', 'NS-MTA-MD5-Password'))            
-        // ->groupBy('radcheck.username')
-        // ->orderBy('id', 'asc')
-        // ->get();
-
         $query = 
         DB::select(DB::raw(
             "SELECT distinct(radcheck.username),radcheck.value, radcheck.id,
