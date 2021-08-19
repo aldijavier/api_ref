@@ -129,27 +129,19 @@ class ApiController extends Controller
         if($find->getData()->success ==  true) {
             try {
                 $CheckBlock = $this->CheckBlock($request);
-                if($request['groupname'] != ApiController::groupname_blocked) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Not blocked user!'
-                    ],202);   
+                if($CheckBlock->getData()->status == false) {
+                    return $CheckBlock;                  
                 } else {
-                    if($CheckBlock->getData()->status == false) {
-                        return $CheckBlock;                  
-                    } else {
-                        $query2 =  RadUserGroup::where('username', $request['username'])
-                        ->where('groupname', ApiController::groupname_blocked)
-                        ->where('priority', ApiController::block_priority)
-                        ->delete();                 
-                        return response()->json([
-                            'success' => true,
-                            'user' => $request['username'],
-                            'message' => 'Unblock user successfully'
-                        ],200);  
-                    }
-                }
-                         
+                    $query2 =  RadUserGroup::where('username', $request['username'])
+                    ->where('groupname', ApiController::groupname_blocked)
+                    ->where('priority', ApiController::block_priority)
+                    ->delete();                 
+                    return response()->json([
+                        'success' => true,
+                        'user' => $request['username'],
+                        'message' => 'Unblock user successfully'
+                    ],200);  
+                }   
             } catch (\Exception $e){
                 return response()->json([
                     'success' => false,
