@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\{UserInfo, RadUserGroup};
+use App\Models\{UserInfo, RadUserGroup, Radcheck};
 
 use Illuminate\Http\Request;
+use DB;
 
 class ApiController extends Controller
 {
@@ -138,9 +139,8 @@ class ApiController extends Controller
                         return $CheckBlock;                  
                     } else {
                         $query2 =  RadUserGroup::where('username', $request['username'])
-                        ->where('groupname', $request['groupname'])
                         ->where('groupname', ApiController::groupname_blocked)
-                        ->where('priority', -999)
+                        ->where('priority', ApiController::block_priority)
                         ->delete();                 
                         return response()->json([
                             'success' => true,
@@ -161,5 +161,81 @@ class ApiController extends Controller
             return $find;
         }
     
-    }    
+    }
+    
+    public function groupStatusAll() 
+    {
+        // $query = DB::table('radcheck')
+        // ->leftJoin('radusergroup', 'radcheck.username', '=', 'radusergroup.username')
+        // ->leftJoin('userinfo', 'radcheck.username', '=', 'userinfo.username')
+        // ->leftJoin('radusergroup as disabled', function($join){
+        //     $join->on('disabled.username', '=', 'userinfo.username')
+        //     ->where('disabled.username', 'daloRADIUS-Disabled-Users');
+            
+        // })
+        // ->select(DB::raw('distinct(radcheck.username), radcheck.value, radcheck.id, radusergroup.groupname as groupname, 
+        //     attribute, userinfo.firstname, userinfo.lastname, IFNULL(disabled.username,0) as disabled'))
+        // // ->where('radcheck.username', 'userinfo.username')
+        // ->whereIn('Attribute', 
+        //     array('Cleartext-Password', 'Auth-Type','User-Password', 'Crypt-Password', 
+        //     'MD5-Password', 'SMD5-Password', 'SHA-Password', 'SSHA-Password', 'NT-Password', 
+        //     'LM-Password', 'SHA1-Password', 'CHAP-Password', 'NS-MTA-MD5-Password'))            
+        // ->groupBy('radcheck.username')
+        // ->orderBy('id', 'asc')
+        // ->get();
+
+        $query = 
+        DB::select(DB::raw(
+            "SELECT distinct(radcheck.username),radcheck.value, radcheck.id,
+            radusergroup.groupname as groupname, attribute,
+            userinfo.firstname, userinfo.lastname , IFNULL(disabled.username,0) as disabled 
+            FROM radcheck
+        LEFT JOIN radusergroup ON radcheck.username=radusergroup.username
+        LEFT JOIN userinfo ON radcheck.username=userinfo.username
+        LEFT JOIN radusergroup disabled ON disabled.username=userinfo.username
+            AND disabled.groupname = 'daloRADIUS-Disabled-Users'
+        WHERE (radcheck.username=userinfo.username)
+            AND Attribute IN ('Cleartext-Password', 'Auth-Type','User-Password', 'Crypt-Password', 
+                'MD5-Password', 'SMD5-Password', 'SHA-Password', 'SSHA-Password', 'NT-Password', 
+                'LM-Password', 'SHA1-Password', 'CHAP-Password', 'NS-MTA-MD5-Password')
+        GROUP by radcheck.Username ORDER BY id asc"));
+
+        return response()->json([
+            'success' => true,
+            'count' => count($query),
+            'results' => $query,
+        ],200);  
+    }
+
+    public function groupStatusSearch(Request $request) {
+
+        $query = 
+        DB::select(DB::raw(
+            "SELECT distinct(radcheck.username),radcheck.value, radcheck.id,
+            radusergroup.groupname as groupname, attribute,
+            userinfo.firstname, userinfo.lastname , IFNULL(disabled.username,0) as disabled 
+            FROM radcheck
+        LEFT JOIN radusergroup ON radcheck.username=radusergroup.username
+        LEFT JOIN userinfo ON radcheck.username=userinfo.username
+        LEFT JOIN radusergroup disabled ON disabled.username=userinfo.username
+            AND disabled.groupname = 'daloRADIUS-Disabled-Users'
+        WHERE (radcheck.username=userinfo.username)
+            AND radcheck.username = ?
+            AND Attribute IN ('Cleartext-Password', 'Auth-Type','User-Password', 'Crypt-Password', 
+                'MD5-Password', 'SMD5-Password', 'SHA-Password', 'SSHA-Password', 'NT-Password', 
+                'LM-Password', 'SHA1-Password', 'CHAP-Password', 'NS-MTA-MD5-Password')
+        GROUP by radcheck.Username ORDER BY id asc"), array($request['username'],));
+
+        if(count($query) == 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'username '.$request['username'].' not found',
+            ],202); 
+        } else {
+            return response()->json([
+                'success' => true,
+                'results' => $query,
+            ],200); 
+        }
+    }
 }
