@@ -24,6 +24,8 @@ Route::middleware('api')->group(function() {
     Route::post('/rad-unblock', [ApiController::class, 'UnblockUserConnection']);
     Route::post('/rad-checkblock', [ApiController::class, 'CheckBlock']);
     Route::post('/rad-checkradusergroup', [ApiController::class, 'CheckRadusergroupUser']);
+    Route::get('/rad-groupstatus/all', [ApiController::class, 'groupStatusAll']);
+    Route::post('/rad-groupstatus/search', [ApiController::class, 'groupStatusSearch']);
 });
 
 
