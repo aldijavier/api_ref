@@ -157,25 +157,6 @@ class ApiController extends Controller
     
     public function groupStatusAll() 
     {
-        // $query = DB::table('radcheck')
-        // ->leftJoin('radusergroup', 'radcheck.username', '=', 'radusergroup.username')
-        // ->leftJoin('userinfo', 'radcheck.username', '=', 'userinfo.username')
-        // ->leftJoin('radusergroup as disabled', function($join){
-        //     $join->on('disabled.username', '=', 'userinfo.username')
-        //     ->where('disabled.username', 'daloRADIUS-Disabled-Users');
-            
-        // })
-        // ->select(DB::raw('distinct(radcheck.username), radcheck.value, radcheck.id, radusergroup.groupname as groupname, 
-        //     attribute, userinfo.firstname, userinfo.lastname, IFNULL(disabled.username,0) as disabled'))
-        // // ->where('radcheck.username', 'userinfo.username')
-        // ->whereIn('Attribute', 
-        //     array('Cleartext-Password', 'Auth-Type','User-Password', 'Crypt-Password', 
-        //     'MD5-Password', 'SMD5-Password', 'SHA-Password', 'SSHA-Password', 'NT-Password', 
-        //     'LM-Password', 'SHA1-Password', 'CHAP-Password', 'NS-MTA-MD5-Password'))            
-        // ->groupBy('radcheck.username')
-        // ->orderBy('id', 'asc')
-        // ->get();
-
         $query = 
         DB::select(DB::raw(
             "SELECT distinct(radcheck.username),radcheck.value, radcheck.id,
