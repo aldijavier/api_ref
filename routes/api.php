@@ -25,9 +25,9 @@ Route::middleware('api')->group(function() {
     Route::post('/rad-checkblock', [ApiController::class, 'CheckBlock']);
     Route::post('/rad-checkradusergroup', [ApiController::class, 'CheckRadusergroupUser']);
 
-    Route::prefix('rad-groupstatus')->group(function () {
+    Route::prefix('rad-usergroup')->group(function () {
         Route::get('/all', [ApiController::class, 'groupStatusAll']);
-        Route::post('/search', [ApiController::class, 'groupStatusSearch']);
+        Route::post('/rad-groupstatus/search', [ApiController::class, 'groupStatusSearch']);
     });
 
     Route::prefix('rad-usergroup')->group(function () {
