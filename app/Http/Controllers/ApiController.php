@@ -16,6 +16,7 @@ class ApiController extends Controller
     public function CheckRadusergroupUser(Request $request)
     {
         // ../api/rad-checkradusergroup
+        // return search result of username in radusergroup table
         $query = RadUserGroup::where('username', $request['username'])
         ->first();
         if(isset($query)) {
@@ -199,7 +200,7 @@ class ApiController extends Controller
                 'LM-Password', 'SHA1-Password', 'CHAP-Password', 'NS-MTA-MD5-Password')
         GROUP by radcheck.Username ORDER BY id asc"), array($request['username'],));
 
-        if(count($query) == 0) {
+        if($query->isEmpty()) {
             return response()->json([
                 'success' => false,
                 'message' => 'username '.$request['username'].' not found',
@@ -209,6 +210,39 @@ class ApiController extends Controller
                 'success' => true,
                 'results' => $query,
             ],200); 
+        }
+    }
+
+    public function fetchUserGroup (Request $request) {
+        // ../api/rad-usergroup/{all,}
+        $query = DB::table('radgroupreply')
+        ->when($request->groupname != '', function ($query) use ($request) {
+            $query->where('GroupName', 'like', '%'.$request->groupname.'%');
+        })
+        ->union(
+            DB::table('radgroupcheck')
+            ->when($request->groupname != '', function ($query) use ($request) {
+                $query->where('GroupName', 'like', '%'.$request->groupname.'%');
+            })
+            ->select('GroupName')
+            ->distinct()
+        )
+        ->select('GroupName')
+        ->distinct()
+        ->get();
+        
+        if($query->isEmpty()) {
+            return response()->json([
+                'success' => true,
+                'status' => false,
+                'message' => 'no groupname in database'
+            ],202);
+        }else {
+            return response()->json([
+                'success' => true,
+                'status' => true,
+                'groupname' => $query,
+            ],200);
         }
     }
 }
