@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\{UserInfo, RadUserGroup, Radcheck};
 use App\Traits\{CheckerTrait,ValidatorTrait};
 use Illuminate\Http\Request;
-use DB;
+use Illuminate\Support\Facades\DB;
 
 class ApiController extends Controller
 {
