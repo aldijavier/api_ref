@@ -186,6 +186,7 @@ class ApiController extends Controller
             AND Attribute IN ('Cleartext-Password', 'Auth-Type','User-Password', 'Crypt-Password', 
                 'MD5-Password', 'SMD5-Password', 'SHA-Password', 'SSHA-Password', 'NT-Password', 
                 'LM-Password', 'SHA1-Password', 'CHAP-Password', 'NS-MTA-MD5-Password')
+            AND userinfo.notes <> ''
         GROUP by radcheck.Username ORDER BY id asc"));
 
         return response()->json([
