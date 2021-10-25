@@ -113,6 +113,7 @@ class ApiController extends Controller
                 'priority' =>  ApiController::block_priority]);  
                 return response()->json([
                     'success' => true,
+                    'status' =>true,
                     'cid' => $request['cid'],
                     'user' => $user_check['username'],
                     'message' => 'Block user successfully'
@@ -220,6 +221,7 @@ class ApiController extends Controller
         if(count($query) == 0) {
             return response()->json([
                 'success' => false,
+                'cid' => $request['cid'],
                 'message' => 'CID '.$request['cid'].' not found',
             ],202); 
         } else {
@@ -232,5 +234,16 @@ class ApiController extends Controller
 
     public function fetchUserGroup (Request $request) {
         // ../api/rad-usergroup/{all,search}
+    }
+
+    public function dummy(Request $request)
+    {
+        // return 'aa';
+        $query =  RadUserGroup::join('userinfo', 'radusergroup.username', '=', 'userinfo.username')
+        ->where('radusergroup.username', $request['username'])
+        ->where('radusergroup.groupname', $this->groupname_blocked)
+        ->where('radusergroup.priority', $this->block_priority)
+        ->firstOrFail(); 
+        return $query;
     }
 }

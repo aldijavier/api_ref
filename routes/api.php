@@ -18,6 +18,7 @@ use App\Http\Controllers\ApiController;
 */
 
 Route::middleware('api')->group(function() {
+    Route::post('/dummy', [ApiController::class, 'dummy']);
     Route::get('/rad-alluser', [ApiController::class, 'UserInfo']);
     Route::post('/rad-findusername', [ApiController::class, 'FindByUsername']);
     Route::post('/rad-block', [ApiController::class, 'BlockUserConnection']);
@@ -38,6 +39,8 @@ Route::middleware('api')->group(function() {
         route::get('/all', [ApiController::class, 'usernameCIDMatch']);
         route::post('/search', [ApiController::class, 'usernameCIDMatch']);
     });
+
+    
 
 });
 

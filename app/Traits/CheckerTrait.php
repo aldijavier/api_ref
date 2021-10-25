@@ -37,6 +37,7 @@ trait CheckerTrait {
                 return response()->json([
                     'success' => false,
                     'error' => 'empty_data',
+                    'cid' => $request['cid'],
                     'message' => 'no data CID found',
                 ],422);
             }
@@ -57,21 +58,27 @@ trait CheckerTrait {
     {
         // ../api/rad-checkblock
         try {
-            $query =  RadUserGroup::where('username', $request['username'])
-            ->where('groupname', $this->groupname_blocked)
-            ->where('priority', $this->block_priority)
+            $query =  RadUserGroup::join('userinfo', 'radusergroup.username', '=', 'userinfo.username')
+            ->where('radusergroup.username', $request['username'])
+            ->where('radusergroup.groupname', $this->groupname_blocked)
+            ->where('radusergroup.priority', $this->block_priority)
             ->firstOrFail(); 
             return response()->json([
                 'success' => true,
                 'status' => true,
+                'cid' => $query->notes,
                 'user' => $request['username'],
                 'message' => 'username '.$request['username'].' already blocked'
             ],202);
 
         } catch (\Exception $e){
+            $query =  RadUserGroup::join('userinfo', 'radusergroup.username', '=', 'userinfo.username')
+            ->where('radusergroup.username', $request['username'])
+            ->firstOrFail(); 
             return response()->json([
                 'success' => true,
                 'status' => false,
+                'cid' => $query->notes,
                 'user' => $request['username'],
                 'message' => 'username '.$request['username'].' already unblocked'
             ],202);

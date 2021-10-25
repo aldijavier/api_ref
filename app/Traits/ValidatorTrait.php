@@ -10,10 +10,10 @@ trait ValidatorTrait {
         $validator =  Validator::make($request->all(),[
             'cid' => 'required|string|exists:App\Models\UserInfo,notes|max:25',
         ]);
-
         if($validator->fails()){
             return response()->json([
                 "success" => false,
+                'cid' => $request['cid'],
                 "error" => 'validation_error',
                 "message" => $validator->errors(),
             ], 422);
