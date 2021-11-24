@@ -3,19 +3,19 @@
 namespace App\Traits;
 use Illuminate\Http\Request;
 use Validator;
+use Illuminate\Support\Facades\DB;
  
 trait ValidatorTrait {
  
     public function validatorCID(Request $request) {
-        $validator =  Validator::make($request->all(),[
-            'cid' => 'required|string|exists:App\Models\UserInfo,notes|max:25',
-        ]);
-        if($validator->fails()){
+        try {
+            $query = DB::table('userinfo')->where('notes', $request['cid'])->get();
+        } catch (\Exception $e) {
             return response()->json([
                 "success" => false,
                 'cid' => $request['cid'],
                 "error" => 'validation_error',
-                "message" => $validator->errors(),
+                "message" => $request['cid']. ' not found',
             ], 422);
         }
     }

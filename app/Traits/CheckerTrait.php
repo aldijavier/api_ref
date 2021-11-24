@@ -3,7 +3,8 @@
 namespace App\Traits;
 use App\Models\{UserInfo,RadUserGroup};
 use Illuminate\Http\Request;
-use Validator;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
  
 trait CheckerTrait {
     private $block_priority = -999;
@@ -13,16 +14,16 @@ trait CheckerTrait {
         try {
             switch ($request->method()) {
                 case 'POST':
-                    $query = UserInfo::
-                    groupBy('radusergroup.username')
+                    $query = DB::table('userinfo')
+                    ->groupBy('radusergroup.username')
                     ->join('radusergroup', 'userinfo.username', '=', 'radusergroup.username')
                     ->where('userinfo.notes', $request['cid'])
                     ->select('radusergroup.username', 'userinfo.notes')
                     ->get(1);
                     break;
                 case 'GET':
-                    $query = UserInfo::
-                    groupBy('userinfo.username')
+                    $query = DB::table('userinfo')
+                    ->groupBy('userinfo.username')
                     ->join('radusergroup', 'userinfo.username', '=', 'radusergroup.username')
                     ->select('radusergroup.username', 'userinfo.notes')
                     ->get();
@@ -58,11 +59,12 @@ trait CheckerTrait {
     {
         // ../api/rad-checkblock
         try {
-            $query =  RadUserGroup::join('userinfo', 'radusergroup.username', '=', 'userinfo.username')
+            $query = DB::table('radusergroup')
+            ->join('userinfo', 'radusergroup.username', '=', 'userinfo.username')
             ->where('radusergroup.username', $request['username'])
             ->where('radusergroup.groupname', $this->groupname_blocked)
             ->where('radusergroup.priority', $this->block_priority)
-            ->firstOrFail(); 
+            ->first(); 
             return response()->json([
                 'success' => true,
                 'status' => true,
@@ -72,9 +74,10 @@ trait CheckerTrait {
             ],202);
 
         } catch (\Exception $e){
-            $query =  RadUserGroup::join('userinfo', 'radusergroup.username', '=', 'userinfo.username')
+            $query = DB::table('radusergroup')
+            ->join('userinfo', 'radusergroup.username', '=', 'userinfo.username')
             ->where('radusergroup.username', $request['username'])
-            ->firstOrFail(); 
+            ->first(); 
             return response()->json([
                 'success' => true,
                 'status' => false,
