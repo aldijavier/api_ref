@@ -19,7 +19,7 @@ class ApiController extends Controller
     {
         // ../api/rad-checkradusergroup
         // return search result of username in radusergroup table
-        $query = RadUserGroup::where('username', $request['username'])
+        $query = DB::table('radusergroup')->where('username', $request['username'])
         ->first();
         if(isset($query)) {
             return response()->json([
@@ -44,7 +44,7 @@ class ApiController extends Controller
     public function UserInfo()
     {
         // ../api/rad-alluser
-        $query =  UserInfo::get();
+        $query =  DB::table('userinfo')->get();
         return response()->json([
             'success' => true,
             'user' => $query,
@@ -55,7 +55,7 @@ class ApiController extends Controller
     {
         // ../api/rad-findusername
         try {
-            $query = UserInfo::where('username', $request['username'])->firstOrFail();
+            $query = DB::table('userinfo')->where('username', $request['username'])->firstOrFail();
             return response()->json([
                 'success' => true,
                 'user' => $query,
@@ -108,7 +108,7 @@ class ApiController extends Controller
                 if($CheckBlock->getData()->status == true) {
                     return $CheckBlock;
                 } 
-                $query2 = RadUserGroup::insert(['username' => $user_check['username'], 
+                $query2 = DB::table('radusergroup')->insert(['username' => $user_check['username'], 
                 'groupname' => ApiController::groupname_blocked,
                 'priority' =>  ApiController::block_priority]);  
                 return response()->json([
@@ -148,7 +148,7 @@ class ApiController extends Controller
                 if($CheckBlock->getData()->status == false) {
                     return $CheckBlock;
                 } 
-                $query2 =  RadUserGroup::where('username', $user_check['username'])
+                $query2 =  DB::table('radusergroup')->where('username', $user_check['username'])
                 ->where('groupname', ApiController::groupname_blocked)
                 ->where('priority', ApiController::block_priority)
                 ->delete(); 
