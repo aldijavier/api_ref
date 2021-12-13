@@ -13,19 +13,20 @@ class ApiController extends Controller
 {
     public function GetAllReferralPromo()
     {
-        try{
-            $query =  Referral::where('status', '=', 1)->get();
+        $query =  Referral::where('status', '=', 1)->get();
             return response()->json([
                 'success' => true,
                 'promocode' => $query,
             ], 200);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'error' => 'not_found',
-                'message' => 'Code already expired or not found'
-            ], 422);
-        }
+        // try{
+            
+        // } catch (\Exception $e) {
+        //     return response()->json([
+        //         'success' => false,
+        //         'error' => 'not_found',
+        //         'message' => 'Code already expired or not found'
+        //     ], 422);
+        // }
     }
 
     public function GetAllReferralAgent()
